@@ -5,11 +5,13 @@
 #include "file_io.h"
 #include "cfg.h"
 #include "fpga_io.h"
+#include "bootcore_utils.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dirent.h>
-
+#include <string>
+#include <cctype>
 
 extern int xml_load(const char *xml);
 int16_t btimeout;
@@ -90,10 +92,10 @@ char *replaceStr(const char *str, const char *oldstr, const char *newstr)
 	return result;
 }
 
-char* loadLastcore()
+char *loadLastcore()
 {
 	char full_path[2100];
-	char path[256] = { CONFIG_DIR"/" };
+	char path[256] = {CONFIG_DIR "/"};
 	strcat(path, "lastcore.dat");
 	sprintf(full_path, "%s/%s", getRootDir(), path);
 	FILE *fd = fopen(full_path, "r");
@@ -114,7 +116,6 @@ char* loadLastcore()
 	}
 	delete[] lastcore;
 	return NULL;
-
 }
 
 char *findCore(const char *name, char *coreName, int indent)
@@ -127,11 +128,12 @@ char *findCore(const char *name, char *coreName, int indent)
 		return NULL;
 	}
 
-
 	char *indir;
-	char* path = new char[256];
-	while ((entry = readdir(dir)) != NULL) {
-		if (entry->d_type == DT_DIR) {
+	char *path = new char[256];
+	while ((entry = readdir(dir)) != NULL)
+	{
+		if (entry->d_type == DT_DIR)
+		{
 			if (entry->d_name[0] != '_')
 				continue;
 			snprintf(path, 256, "%s/%s", name, entry->d_name);
@@ -143,7 +145,8 @@ char *findCore(const char *name, char *coreName, int indent)
 				return indir;
 			}
 		}
-		else if (!strcmp(entry->d_name, coreName))
+		// TODO: here
+		else if (preciseMatchOrGenericCoreName(coreName, entry->d_name))
 		{
 			snprintf(path, 256, "%s/%s", name, entry->d_name);
 			closedir(dir);
@@ -219,11 +222,9 @@ void bootcore_init(const char *path)
 		{
 			if (strcmp(bootcore, auxpointer))
 			{
-				FileSaveConfig("lastcore.dat", (char*)auxpointer, strlen(auxpointer));
+				FileSaveConfig("lastcore.dat", (char *)auxpointer, strlen(auxpointer));
 			}
 		}
 	}
 	strcpy(cfg.bootcore, "");
-
 }
-
